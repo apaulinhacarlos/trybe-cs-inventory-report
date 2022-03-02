@@ -1,34 +1,48 @@
-from abc import ABC, abstractmethod
-import json
+from datetime import datetime
 
-# metodo generate recebe uma lista de dict (dicionarios) e retorna string formatada como relatorio
-
-
-class SimpleReport(ABC):
-    def __init__(self, export_file):
-        self.export_file = export_file
-
-    @abstractmethod
-    def generate(self):
-        raise NotImplementedError
+# Método que retorna o valor mais comum de dados discretos ou nominais.
+# https://docs.python.org/3/library/statistics.html#statistics.mode
+from statistics import mode
 
 
-class reportJSON(SimpleReport):
-    def generate(self):
-        with open(self.export_file) as file:
-            inventory_list = json.load(file)
-            return list(inventory_list)
+class SimpleReport:
+    @classmethod
+    def earliest_manufacturing_date(cls, dict_list):
+        min_date = min(
+            [
+                datetime.fromisoformat(product["data_de_fabricacao"])
+                for product in dict_list
+            ]
+        )
+        return min_date.date()
 
-            # for item in inventory_list:
-            #     return list(item["nome_do_produto"])
-            # json.dump(file)
-            # return list(file)
-            # return (
-            #     f"Data de fabricação mais antiga: YYYY-MM-DD {file}\n"
-            #     "Data de validade mais próxima: YYYY-MM-DD\n"
-            #     "Empresa com maior quantidade de produtos estocados: NOME DA EMPRESA\n"
-            # )
+    @classmethod
+    def closest_expiration_date(cls, dict_list):
+        current_date = datetime.now()
+        min_date = min(
+            [
+                datetime.fromisoformat(product["data_de_validade"])
+                for product in dict_list
+                if datetime.fromisoformat(product["data_de_validade"])
+                > current_date
+            ]
+        )
+        return min_date.date()
 
+    @classmethod
+    def company_with_the_largest_amount_of_products_stocked(cls, dict_list):
+        return mode([product["nome_da_empresa"] for product in dict_list])
 
-teste = reportJSON("inventory_report/data/inventory.json")
-print(teste.generate())
+    @classmethod
+    def generate(cls, dict_list):
+        company = cls.company_with_the_largest_amount_of_products_stocked(
+            dict_list
+        )
+        return (
+            "Data de fabricação mais antiga: "
+            f"{cls.earliest_manufacturing_date(dict_list)}\n"
+            "Data de validade mais próxima: "
+            f"{cls.closest_expiration_date(dict_list)}\n"
+            "Empresa com maior quantidade de produtos estocados: "
+            f"{company}\n"
+        )
