@@ -69,13 +69,13 @@ Instale as dependencias do projeto:
 ```bash
 python3 -m pip install -r dev-requirements.txt
 ```
-
+<!-- 
 Execute os testes:
 
 ```bash
 python3 -m pytest
 ```
-
+-->
 Execute o projeto:
 
 ```bash
